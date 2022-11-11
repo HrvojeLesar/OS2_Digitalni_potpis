@@ -1,6 +1,7 @@
 use iced::{button, Button, Column, Sandbox, Text, Settings};
 
 mod encryption;
+mod keygen;
 
 struct Counter {
     value: i32,
