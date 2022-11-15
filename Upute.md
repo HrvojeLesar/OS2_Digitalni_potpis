@@ -53,7 +53,7 @@ Ostvariti program koji omogućuje:
 - [x] stvaranje i pohranjivanje kriptografskih ključeva u datoteke 
 tajni_kljuc.txt, javni_kljuc.txt i privatni_kljuc.txt;
 - [x] kriptiranje, odnosno dekriptiranje zadane datoteke simetričnim i asimetričnim algoritmom;
-- [ ] izračunavanje sažetka poruke (ulazne datoteke);
+- [x] izračunavanje sažetka poruke (ulazne datoteke);
 - [ ] digitalno potpisivanje ulazne datoteke te provjeru digitalnog potpisa.
 
 Uputa: Za simetrično i asimetrično kriptiranje te za izračunavanje sažetka poruke 

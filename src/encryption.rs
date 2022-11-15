@@ -1,7 +1,7 @@
 use openssl::{
     pkey::Private,
     rsa::{Padding, Rsa},
-    symm::{decrypt, encrypt, Cipher},
+    symm::{decrypt, encrypt, Cipher}, sha::Sha256,
 };
 
 use crate::{
@@ -205,6 +205,21 @@ fn fill_buffer(buf: &mut Vec<u8>) {
     }
 }
 
+struct ShaHash;
+
+impl ShaHash {
+    pub fn hash(data: &[u8]) -> Vec<u8> {
+        let mut hasher = Sha256::new();
+        hasher.update(data);
+        hasher.finish().to_vec()
+    }
+
+    pub fn hash_file(filename: &str) -> Vec<u8> {
+        let data = read_file_to_buffer(filename);
+        ShaHash::hash(&data)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use openssl::rsa::{Padding, Rsa};
@@ -214,7 +229,7 @@ mod tests {
         file_manip::{read_file_to_buffer, write_file},
     };
 
-    use super::EncryptSymmetric;
+    use super::{EncryptSymmetric, ShaHash};
 
     #[test]
     fn test_encrypt_symmetric() {
