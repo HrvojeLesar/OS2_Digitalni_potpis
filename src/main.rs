@@ -2,6 +2,11 @@ use iced::{button, Button, Column, Sandbox, Text, Settings};
 
 mod encryption;
 mod keygen;
+mod file_manip;
+
+const PRIVATE_KEY_FILENAME: &str = "privatni_kljuc.txt";
+const PUBLIC_KEY_FILENAME: &str = "javni_kljuc.txt";
+const SECRET_KEY_FILENAME: &str = "tajni_kljuc.txt";
 
 struct Counter {
     value: i32,

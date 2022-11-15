@@ -1,4 +1,13 @@
-use openssl::symm::{decrypt, encrypt, Cipher};
+use openssl::{
+    pkey::Private,
+    rsa::{Padding, Rsa},
+    symm::{decrypt, encrypt, Cipher},
+};
+
+use crate::{
+    file_manip::{read_file_to_buffer, write_file},
+    PRIVATE_KEY_FILENAME, PUBLIC_KEY_FILENAME,
+};
 
 struct EncryptSymmetric<'a> {
     cipher: Cipher,
@@ -26,23 +35,195 @@ impl<'a> EncryptSymmetric<'a> {
     }
 
     pub fn encrypt(&self, data: &[u8]) -> Vec<u8> {
-        encrypt(self.cipher, self.key, None, data).unwrap()
+        encrypt(self.cipher, self.key, self.initialization_vector, data).unwrap()
     }
 
     pub fn decrypt(&self, encrypted_data: &[u8]) -> Vec<u8> {
-        decrypt(self.cipher, self.key, None, encrypted_data).unwrap()
+        decrypt(
+            self.cipher,
+            self.key,
+            self.initialization_vector,
+            encrypted_data,
+        )
+        .unwrap()
+    }
+
+    pub fn encrypt_file(&self, filename: &str) -> Vec<u8> {
+        let file = read_file_to_buffer(&filename);
+        encrypt(self.cipher, self.key, self.initialization_vector, &file).unwrap()
+    }
+
+    pub fn decrypt_file(&self, filename: &str) -> Vec<u8> {
+        let file = read_file_to_buffer(&filename);
+        encrypt(self.cipher, self.key, self.initialization_vector, &file).unwrap()
+    }
+}
+
+struct EncryptAsymmetric {
+    rsa: Rsa<Private>,
+}
+
+impl EncryptAsymmetric {
+    pub fn new() -> Self {
+        Self {
+            rsa: Rsa::generate(2048).unwrap(),
+        }
+    }
+
+    pub fn new_save_keys() -> Self {
+        let rsa = Rsa::generate(2048).unwrap();
+        write_file(
+            PRIVATE_KEY_FILENAME,
+            &rsa.private_key_to_pem().unwrap(),
+            false,
+        );
+        write_file(
+            PUBLIC_KEY_FILENAME,
+            &rsa.public_key_to_pem().unwrap(),
+            false,
+        );
+        Self {
+            rsa: Rsa::generate(2048).unwrap(),
+        }
+    }
+
+    pub fn from_files() -> Self {
+        let private_key_pem = read_file_to_buffer(PRIVATE_KEY_FILENAME);
+        Self {
+            rsa: Rsa::private_key_from_pem(&private_key_pem).unwrap(),
+        }
+    }
+
+    pub fn private_encrypt_file(&self, filename: &str) -> Vec<u8> {
+        let file = read_file_to_buffer(&filename);
+        let mut out = Vec::with_capacity(file.len());
+        let mut buf = vec![0; self.rsa.size() as usize];
+        let mut bytes_remaining = file.len();
+
+        let mut from = 0;
+        while bytes_remaining > 0 {
+            let to = if bytes_remaining > (self.rsa.size() as usize - 11) {
+                from + self.rsa.size() as usize - 11
+            } else {
+                from + bytes_remaining
+            };
+            self.rsa
+                .private_encrypt(&file[from..to], &mut buf, Padding::PKCS1)
+                .unwrap();
+
+            bytes_remaining -= to - from;
+            from = to;
+            out.append(&mut buf);
+            fill_buffer(&mut buf);
+        }
+        out
+    }
+
+    pub fn private_decrypt_file(&self, filename: &str) -> Vec<u8> {
+        let file = read_file_to_buffer(&filename);
+        let mut out = Vec::with_capacity(file.len());
+        let mut buf = vec![0; self.rsa.size() as usize];
+        let mut bytes_remaining = file.len();
+
+        let mut from = 0;
+        while bytes_remaining > 0 {
+            let to = if bytes_remaining > (self.rsa.size() as usize) {
+                from + self.rsa.size() as usize
+            } else {
+                from + bytes_remaining
+            };
+            let bytes_decrypted = self
+                .rsa
+                .private_encrypt(&file[from..to], &mut buf, Padding::PKCS1)
+                .unwrap();
+
+            bytes_remaining -= to - from;
+            from = to;
+            out.append(&mut buf[..bytes_decrypted].to_vec());
+            fill_buffer(&mut buf);
+        }
+        out
+    }
+
+    pub fn public_encrypt_file(&self, filename: &str) -> Vec<u8> {
+        let file = read_file_to_buffer(&filename);
+        let mut out = Vec::with_capacity(file.len());
+        let mut buf = vec![0; self.rsa.size() as usize];
+        let mut bytes_remaining = file.len();
+
+        let mut from = 0;
+        while bytes_remaining > 0 {
+            let to = if bytes_remaining > (self.rsa.size() as usize - 11) {
+                from + self.rsa.size() as usize - 11
+            } else {
+                from + bytes_remaining
+            };
+            self.rsa
+                .public_encrypt(&file[from..to], &mut buf, Padding::PKCS1)
+                .unwrap();
+
+            bytes_remaining -= to - from;
+            from = to;
+            out.append(&mut buf);
+            fill_buffer(&mut buf);
+        }
+        out
+    }
+
+    pub fn public_decrypt_file(&self, filename: &str) -> Vec<u8> {
+        let file = read_file_to_buffer(&filename);
+        let mut out = Vec::with_capacity(file.len());
+        let mut buf = vec![0; self.rsa.size() as usize];
+        let mut bytes_remaining = file.len();
+
+        let mut from = 0;
+        while bytes_remaining > 0 {
+            let to = if bytes_remaining > (self.rsa.size() as usize) {
+                from + self.rsa.size() as usize
+            } else {
+                from + bytes_remaining
+            };
+            let bytes_decrypted = self
+                .rsa
+                .private_encrypt(&file[from..to], &mut buf, Padding::PKCS1)
+                .unwrap();
+
+            bytes_remaining -= to - from;
+            from = to;
+            out.append(&mut buf[..bytes_decrypted].to_vec());
+            fill_buffer(&mut buf);
+        }
+        out
+    }
+}
+
+fn fill_buffer(buf: &mut Vec<u8>) {
+    if buf.len() < buf.capacity() {
+        for _ in buf.len()..buf.capacity() {
+            buf.push(0);
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use openssl::rsa::{Padding, Rsa};
+
+    use crate::{
+        encryption::fill_buffer,
+        file_manip::{read_file_to_buffer, write_file},
+    };
+
     use super::EncryptSymmetric;
 
     #[test]
     fn test_encrypt_symmetric() {
         let aes = EncryptSymmetric::default();
         let data = aes.encrypt(b"test");
-        assert_eq!(data.as_slice(), b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D");
+        assert_eq!(
+            data.as_slice(),
+            b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D"
+        );
     }
 
     #[test]
