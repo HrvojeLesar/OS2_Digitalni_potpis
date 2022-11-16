@@ -37,16 +37,16 @@ mod tests {
     
     #[test]
     fn write_file_test() {
-        write_file("testfile", b"content", false);
-        fs::remove_file("testfile").unwrap();
+        write_file("write_file_test", b"content", false);
+        fs::remove_file("write_file_test").unwrap();
     }
 
+    #[test]
     fn write_file_append_test() {
-        write_file("testfile2", b"content", false);
-        write_file("testfile2", b"content", true);
-        let res = read_file_to_string("read_file_to_string_test");
-        fs::remove_file("testfile2").unwrap();
-
+        write_file("write_append_test", b"content", false);
+        write_file("write_append_test", b"content", true);
+        let res = read_file_to_string("write_append_test");
+        fs::remove_file("write_append_test").unwrap();
         assert_eq!(res, "contentcontent");
     }
 
@@ -62,10 +62,10 @@ mod tests {
 
     #[test]
     fn read_file_to_buffer_test() {
-        let mut file = File::create("read_file_to_buffer").unwrap();
+        let mut file = File::create("read_file_to_buffer_test").unwrap();
         file.write_all(b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D").unwrap();
-        let res = read_file_to_buffer("read_file_to_buffer");
-        fs::remove_file("read_file_to_buffer").unwrap();
+        let res = read_file_to_buffer("read_file_to_buffer_test");
+        fs::remove_file("read_file_to_buffer_test").unwrap();
 
         assert_eq!(res, b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D");
     }

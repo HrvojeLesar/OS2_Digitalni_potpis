@@ -54,7 +54,7 @@ Ostvariti program koji omogućuje:
 tajni_kljuc.txt, javni_kljuc.txt i privatni_kljuc.txt;
 - [x] kriptiranje, odnosno dekriptiranje zadane datoteke simetričnim i asimetričnim algoritmom;
 - [x] izračunavanje sažetka poruke (ulazne datoteke);
-- [ ] digitalno potpisivanje ulazne datoteke te provjeru digitalnog potpisa.
+- [x] digitalno potpisivanje ulazne datoteke te provjeru digitalnog potpisa.
 
 Uputa: Za simetrično i asimetrično kriptiranje te za izračunavanje sažetka poruke 
 koristiti gotove, slobodno raspoložive izvorne tekstove programa po vlastitom izboru. 

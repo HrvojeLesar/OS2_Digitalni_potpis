@@ -261,14 +261,8 @@ impl ShaHash {
 
 #[cfg(test)]
 mod tests {
-    use openssl::rsa::{Padding, Rsa};
 
-    use crate::{
-        encryption::fill_buffer,
-        file_manip::{read_file_to_buffer, write_file},
-    };
-
-    use super::{EncryptAsymmetric, EncryptSymmetric, ShaHash};
+    use super::EncryptSymmetric;
 
     #[test]
     fn test_encrypt_symmetric() {
@@ -285,53 +279,5 @@ mod tests {
         let aes = EncryptSymmetric::default();
         let data = aes.decrypt(b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D");
         assert_eq!(data, b"test");
-    }
-
-    #[test]
-    fn enc_test() {
-        let file = read_file_to_buffer("testfile");
-        let rsa = EncryptAsymmetric::new();
-        write_file("enc", &rsa.public_encrypt(&file), false);
-        let file = read_file_to_buffer("enc");
-        write_file("dec", &rsa.private_decrypt(&file), false);
-    }
-
-    #[test]
-    fn sign_test() {
-        let rsa = EncryptAsymmetric::from_files(Some("privatni_kljuc.txt"));
-        let signature = rsa.sign_file("testfile");
-        write_file("enc.rs.sig", &signature, false);
-    }
-
-    #[test]
-    fn verify_test() {
-        let rsa = EncryptAsymmetric::from_files(Some("privatni_kljuc.txt"));
-        let signature = rsa.sign_file("testfile");
-        write_file("enc.rs.sig", &signature, false);
-        assert_eq!(rsa.verify_file_signature("testfile", "enc.rs.sign"), true);
-    }
-
-    #[test]
-    fn enc_test2() {
-        let rsa = EncryptAsymmetric::from_files(Some("privatni_kljuc.txt"));
-        let data = rsa.private_encrypt(b"data");
-        assert_eq!(rsa.public_decrypt(&data), b"data");
-    }
-
-    #[test]
-    fn sign_and_verify_test() {
-        let rsa = EncryptAsymmetric::from_files(Some("privatni_kljuc.txt"));
-        let hash = ShaHash::hash(b"data");
-        let sig = rsa.sign(b"data");
-        let verify = rsa.verify(&hash, &sig);
-        assert!(verify);
-    }
-
-    #[test]
-    fn sign_and_verify_file_test() {
-        let rsa = EncryptAsymmetric::from_files(Some("privatni_kljuc.txt"));
-        let signature = rsa.sign_file("testfile");
-        write_file("sig", &signature, false);
-        assert!(rsa.verify_file_signature("testfile", "sig"))
     }
 }
