@@ -10,24 +10,31 @@ use crate::{
     PRIVATE_KEY_FILENAME, PUBLIC_KEY_FILENAME,
 };
 
-struct EncryptSymmetric<'a> {
+pub struct EncryptSymmetric {
     cipher: Cipher,
-    key: &'a [u8],
-    initialization_vector: Option<&'a [u8]>,
+    key: Vec<u8>,
+    initialization_vector: Option<Vec<u8>>,
 }
 
-impl<'a> Default for EncryptSymmetric<'a> {
+impl Default for EncryptSymmetric {
     fn default() -> Self {
         Self {
             cipher: Cipher::aes_128_cbc(),
-            key: b"secure_128bitkey",
+            key: b"secure_128bitkey".to_vec(),
             initialization_vector: None,
         }
     }
 }
 
-impl<'a> EncryptSymmetric<'a> {
-    pub fn new(cipher: Cipher, key: &'a [u8], initialization_vector: Option<&'a [u8]>) -> Self {
+fn print_vec(v: &[u8]) {
+    for b in v {
+        print!("{:x}", b);
+    }
+    println!("");
+}
+
+impl EncryptSymmetric {
+    pub fn new(cipher: Cipher, key: Vec<u8>, initialization_vector: Option<Vec<u8>>) -> Self {
         Self {
             cipher,
             key,
@@ -36,14 +43,20 @@ impl<'a> EncryptSymmetric<'a> {
     }
 
     pub fn encrypt(&self, data: &[u8]) -> Vec<u8> {
-        encrypt(self.cipher, self.key, self.initialization_vector, data).unwrap()
+        encrypt(
+            self.cipher,
+            &self.key,
+            self.initialization_vector.as_ref().map(|v| v.as_slice()),
+            data,
+        )
+        .unwrap()
     }
 
     pub fn decrypt(&self, encrypted_data: &[u8]) -> Vec<u8> {
         decrypt(
             self.cipher,
-            self.key,
-            self.initialization_vector,
+            &self.key,
+            self.initialization_vector.as_ref().map(|v| v.as_slice()),
             encrypted_data,
         )
         .unwrap()
@@ -51,16 +64,28 @@ impl<'a> EncryptSymmetric<'a> {
 
     pub fn encrypt_file(&self, filename: &str) -> Vec<u8> {
         let file = read_file_to_buffer(&filename);
-        encrypt(self.cipher, self.key, self.initialization_vector, &file).unwrap()
+        encrypt(
+            self.cipher,
+            &self.key,
+            self.initialization_vector.as_ref().map(|v| v.as_slice()),
+            &file,
+        )
+        .unwrap()
     }
 
     pub fn decrypt_file(&self, filename: &str) -> Vec<u8> {
         let file = read_file_to_buffer(&filename);
-        encrypt(self.cipher, self.key, self.initialization_vector, &file).unwrap()
+        decrypt(
+            self.cipher,
+            &self.key,
+            self.initialization_vector.as_ref().map(|v| v.as_slice()),
+            &file,
+        )
+        .unwrap()
     }
 }
 
-struct EncryptAsymmetric {
+pub struct EncryptAsymmetric {
     rsa: Rsa<Private>,
 }
 
@@ -268,16 +293,13 @@ mod tests {
     fn test_encrypt_symmetric() {
         let aes = EncryptSymmetric::default();
         let data = aes.encrypt(b"test");
-        assert_eq!(
-            data.as_slice(),
-            b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D"
-        );
+        assert_eq!(data.as_slice(), b"test");
     }
 
     #[test]
     fn test_decrypt_symmetric() {
         let aes = EncryptSymmetric::default();
-        let data = aes.decrypt(b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D");
+        let data = aes.decrypt(b"test");
         assert_eq!(data, b"test");
     }
 }

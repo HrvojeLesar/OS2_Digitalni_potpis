@@ -1,6 +1,6 @@
 use rand::{rngs::ThreadRng, Rng};
 
-struct Keygen {
+pub struct Keygen {
     rng: ThreadRng,
 }
 

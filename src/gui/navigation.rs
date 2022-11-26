@@ -1,7 +1,7 @@
 use iced::{widget::{button, row}, Element};
 
 #[derive(Debug, Clone, Copy)]
-pub enum NavigationState {
+pub enum NavigationStateMessage {
     KeyGen,
     EncryptDecrypt,
     Hashing,
@@ -9,26 +9,26 @@ pub enum NavigationState {
 }
 
 pub struct NavigationButtons {
-    current_state: NavigationState,
+    pub current_state: NavigationStateMessage,
 }
 
 impl NavigationButtons {
     pub fn new() -> Self {
         Self {
-            current_state: NavigationState::KeyGen,
+            current_state: NavigationStateMessage::KeyGen,
         }
     }
 
-    pub fn update(&mut self, state: NavigationState) {
+    pub fn update(&mut self, state: NavigationStateMessage) {
         self.current_state = state;
     }
 
-    pub fn view(&self) -> Element<NavigationState> {
+    pub fn view(&self) -> Element<NavigationStateMessage> {
         row![
-            button("KeyGen").on_press(NavigationState::KeyGen),
-            button("EncryptDecrypt").on_press(NavigationState::EncryptDecrypt),
-            button("Hashing").on_press(NavigationState::Hashing),
-            button("Sign").on_press(NavigationState::Sign),
+            button("KeyGen").on_press(NavigationStateMessage::KeyGen),
+            button("EncryptDecrypt").on_press(NavigationStateMessage::EncryptDecrypt),
+            button("Hashing").on_press(NavigationStateMessage::Hashing),
+            button("Sign").on_press(NavigationStateMessage::Sign),
         ]
         .spacing(20)
         .into()
