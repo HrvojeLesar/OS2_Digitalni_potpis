@@ -1,62 +1,58 @@
-use iced::{button, Button, Column, Sandbox, Text, Settings};
+use gui::navigation::{NavigationButtons, NavigationState};
+use iced::widget::{button, column, row, text};
+use iced::{Element, Sandbox, Settings};
+use tinyfiledialogs::open_file_dialog;
 
 mod encryption;
-mod keygen;
 mod file_manip;
+mod gui;
+mod keygen;
 
 const PRIVATE_KEY_FILENAME: &str = "privatni_kljuc.txt";
 const PUBLIC_KEY_FILENAME: &str = "javni_kljuc.txt";
 const SECRET_KEY_FILENAME: &str = "tajni_kljuc.txt";
 
-struct Counter {
+struct DigitalniPotpisApp {
     value: i32,
-    increment_button: button::State,
-    decrement_button: button::State,
+    navigationButtons: NavigationButtons,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
-    IncrementPressed,
-    DecrementPressed,
+    NavigationMessage(NavigationState),
 }
 
-impl Sandbox for Counter {
+impl Sandbox for DigitalniPotpisApp {
     type Message = Message;
 
     fn new() -> Self {
         Self {
             value: 0,
-            increment_button: button::State::default(),
-            decrement_button: button::State::default(),
+            navigationButtons: NavigationButtons::new(),
         }
     }
 
     fn title(&self) -> String {
-        String::from("Counter")
+        String::from("Digitalni Potpis")
     }
 
     fn update(&mut self, message: Self::Message) {
         match message {
-            Message::IncrementPressed => self.value += 1,
-            Message::DecrementPressed => self.value -= 1,
+            Message::NavigationMessage(msg) => self.navigationButtons.update(msg),
         }
     }
 
-    fn view(&mut self) -> iced::Element<'_, Self::Message> {
-        Column::new()
-            .push(
-                Button::new(&mut self.increment_button, Text::new("+"))
-                    .on_press(Message::IncrementPressed),
-            )
-            .push(Text::new(self.value.to_string()).size(50))
-            .push(
-                Button::new(&mut self.decrement_button, Text::new("-"))
-                    .on_press(Message::DecrementPressed),
-            )
-            .into()
+    fn view(&self) -> iced::Element<Self::Message> {
+        let col = column![
+            text(self.value.to_string()).size(50),
+            self.navigationButtons
+                .view()
+                .map(|mes| Message::NavigationMessage(mes))
+        ];
+        col.into()
     }
 }
 
 fn main() -> iced::Result {
-    Counter::run(Settings::default())
+    DigitalniPotpisApp::run(Settings::default())
 }
