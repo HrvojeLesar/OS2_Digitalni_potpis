@@ -1,6 +1,8 @@
 use gui::encrypt_decrypt::{EncryptDecryptMessage, EncryptDecryptView};
+use gui::hash::{HashMessage, HashView};
 use gui::keygen::{GenerateKeysView, KeyGenMessage};
 use gui::navigation::{NavigationButtons, NavigationStateMessage};
+use gui::sign::{SignMessage, SignView};
 use iced::widget;
 use iced::{executor, Application, Command, Settings, Theme};
 
@@ -17,6 +19,8 @@ struct DigitalniPotpisApp {
     navigation_buttons: NavigationButtons,
     keygen_view: GenerateKeysView,
     encrypt_decrypt_view: EncryptDecryptView,
+    hashing_view: HashView,
+    sign_view: SignView,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -24,6 +28,8 @@ pub enum Message {
     NavigationMessage(NavigationStateMessage),
     KeyGenMessage(KeyGenMessage),
     EncryptDecryptMessage(EncryptDecryptMessage),
+    HashMessage(HashMessage),
+    SignMessage(SignMessage),
 }
 
 impl Application for DigitalniPotpisApp {
@@ -38,6 +44,8 @@ impl Application for DigitalniPotpisApp {
                 navigation_buttons: NavigationButtons::new(),
                 keygen_view: GenerateKeysView::new(),
                 encrypt_decrypt_view: EncryptDecryptView::new(),
+                hashing_view: HashView::new(),
+                sign_view: SignView::new(),
             },
             Command::none(),
         )
@@ -52,12 +60,13 @@ impl Application for DigitalniPotpisApp {
             Message::NavigationMessage(msg) => {
                 self.navigation_buttons.update(msg);
                 self.encrypt_decrypt_view.reset();
+                self.hashing_view.reset();
+                self.sign_view.reset();
             }
-            Message::KeyGenMessage(msg) => {
-                self.keygen_view.update(msg);
-                self.encrypt_decrypt_view.reset();
-            }
+            Message::KeyGenMessage(msg) => self.keygen_view.update(msg),
             Message::EncryptDecryptMessage(msg) => self.encrypt_decrypt_view.update(msg),
+            Message::HashMessage(msg) => self.hashing_view.update(msg),
+            Message::SignMessage(msg) => self.sign_view.update(msg),
         }
         Command::none()
     }
@@ -66,19 +75,22 @@ impl Application for DigitalniPotpisApp {
         let mut col = widget::column![self
             .navigation_buttons
             .view()
-            .map(|mes| Message::NavigationMessage(mes))];
+            .map(Message::NavigationMessage)];
         col = match self.navigation_buttons.current_state {
-            NavigationStateMessage::KeyGen => col.push(
-                self.keygen_view
-                    .view()
-                    .map(|msg| Message::KeyGenMessage(msg)),
-            ),
+            NavigationStateMessage::KeyGen => {
+                col.push(self.keygen_view.view().map(Message::KeyGenMessage))
+            }
             NavigationStateMessage::EncryptDecrypt => col.push(
                 self.encrypt_decrypt_view
                     .view()
-                    .map(|msg| Message::EncryptDecryptMessage(msg)),
+                    .map(Message::EncryptDecryptMessage),
             ),
-            _ => todo!(),
+            NavigationStateMessage::Hashing => {
+                col.push(self.hashing_view.view().map(Message::HashMessage))
+            }
+            NavigationStateMessage::Sign => {
+                col.push(self.sign_view.view().map(Message::SignMessage))
+            }
         };
         col.into()
     }

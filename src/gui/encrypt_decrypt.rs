@@ -1,7 +1,5 @@
-use std::path::Path;
-
 use iced::{
-    widget::{self, button, row, scrollable, text},
+    widget::{self, button, row, text},
     Element,
 };
 use openssl::symm::Cipher;
@@ -9,9 +7,11 @@ use tinyfiledialogs::open_file_dialog;
 
 use crate::{
     encryption::{EncryptAsymmetric, EncryptSymmetric},
-    file_manip::{read_file_to_buffer, read_file_to_string, write_file},
-    PUBLIC_KEY_FILENAME, SECRET_KEY_FILENAME,
+    file_manip::{read_file_to_buffer, write_file},
+    SECRET_KEY_FILENAME,
 };
+
+use super::path_to_filename;
 
 #[derive(Debug, Clone, Copy)]
 pub enum EncryptDecryptMessage {
@@ -27,14 +27,6 @@ pub struct EncryptDecryptView {
     selected_file: Option<String>,
     symmetric: Option<EncryptSymmetric>,
     asymmetric: Option<EncryptAsymmetric>,
-}
-
-fn path_to_filename(path: &str) -> String {
-    Path::new(path)
-        .file_name()
-        .unwrap()
-        .to_string_lossy()
-        .to_string()
 }
 
 impl EncryptDecryptView {
@@ -67,7 +59,7 @@ impl EncryptDecryptView {
                 if let (Some(encrypt), Some(path)) =
                     (self.asymmetric.as_ref(), self.selected_file.as_ref())
                 {
-                    let res = encrypt.public_encrypt_file(&path);
+                    let res = encrypt.public_encrypt_file(path);
                     write_file("rsa_enkriptirana_datoteka", &res, false);
                 }
             }
@@ -75,7 +67,7 @@ impl EncryptDecryptView {
                 if let (Some(decrypt), Some(path)) =
                     (self.asymmetric.as_ref(), self.selected_file.as_ref())
                 {
-                    let res = decrypt.private_decrypt_file(&path);
+                    let res = decrypt.private_decrypt_file(path);
                     write_file("rsa_dekriptirana_datoteka", &res, false);
                 }
             }
@@ -83,7 +75,7 @@ impl EncryptDecryptView {
                 if let (Some(encrypt), Some(path)) =
                     (self.symmetric.as_ref(), self.selected_file.as_ref())
                 {
-                    let res = encrypt.encrypt_file(&path);
+                    let res = encrypt.encrypt_file(path);
                     write_file("aes_enkriptirana_datoteka", &res, false);
                 }
             }
@@ -91,7 +83,7 @@ impl EncryptDecryptView {
                 if let (Some(encrypt), Some(path)) =
                     (self.symmetric.as_ref(), self.selected_file.as_ref())
                 {
-                    let res = encrypt.decrypt_file(&path);
+                    let res = encrypt.decrypt_file(path);
                     write_file("aes_dekriptirana_datoteka", &res, false);
                 }
             }
@@ -99,12 +91,6 @@ impl EncryptDecryptView {
     }
 
     pub fn view(&self) -> Element<EncryptDecryptMessage> {
-        // ključevi moraju postojati
-        // odabir datoteke
-        // prikaz odabrane datotkene ???
-        // kriptiraj/dekriptiraj odabranu s asymmetric
-        // kriptiraj/dekriptiraj odabranu s symmetric
-
         let mut load_keys_button = button("Ucitaj kljuceve");
         load_keys_button = if self.symmetric.is_none() && self.asymmetric.is_none() {
             load_keys_button.on_press(EncryptDecryptMessage::LoadKeys)
@@ -122,24 +108,19 @@ impl EncryptDecryptView {
             col = col.push(load_file_button)
         }
 
-        // if let Some(path) = &self.selected_file {
-        //     let scrollable = scrollable(text(read_file_to_string(path)));
-        //     col = col.push(scrollable);
-        // }
-
         if let (Some(_asymmetric), Some(_symmetric), Some(_selected_file)) = (
             self.asymmetric.as_ref(),
             self.symmetric.as_ref(),
             self.selected_file.as_ref(),
         ) {
             col = col.push(row![
-                button("Enkriptiraj datuteku simetričnim algoritmom")
+                button("Enkriptiraj datuteku simetricnim algoritmom")
                     .on_press(EncryptDecryptMessage::EncryptSymmetric),
-                button("Enkriptiraj datuteku asimetričnim algoritmom")
+                button("Enkriptiraj datuteku asimetricnim algoritmom")
                     .on_press(EncryptDecryptMessage::EncryptAsymmetric),
-                button("Dekriptiraj datuteku simetričnim algoritmom")
+                button("Dekriptiraj datuteku simetricnim algoritmom")
                     .on_press(EncryptDecryptMessage::DecryptSymmetric),
-                button("Dekriptiraj datuteku asimetričnim algoritmom")
+                button("Dekriptiraj datuteku asimetricnim algoritmom")
                     .on_press(EncryptDecryptMessage::DecryptAsymmetric),
             ]);
         }

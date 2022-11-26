@@ -26,13 +26,6 @@ impl Default for EncryptSymmetric {
     }
 }
 
-fn print_vec(v: &[u8]) {
-    for b in v {
-        print!("{:x}", b);
-    }
-    println!("");
-}
-
 impl EncryptSymmetric {
     pub fn new(cipher: Cipher, key: Vec<u8>, initialization_vector: Option<Vec<u8>>) -> Self {
         Self {
@@ -46,7 +39,7 @@ impl EncryptSymmetric {
         encrypt(
             self.cipher,
             &self.key,
-            self.initialization_vector.as_ref().map(|v| v.as_slice()),
+            self.initialization_vector.as_deref(),
             data,
         )
         .unwrap()
@@ -56,29 +49,29 @@ impl EncryptSymmetric {
         decrypt(
             self.cipher,
             &self.key,
-            self.initialization_vector.as_ref().map(|v| v.as_slice()),
+            self.initialization_vector.as_deref(),
             encrypted_data,
         )
         .unwrap()
     }
 
     pub fn encrypt_file(&self, filename: &str) -> Vec<u8> {
-        let file = read_file_to_buffer(&filename);
+        let file = read_file_to_buffer(filename);
         encrypt(
             self.cipher,
             &self.key,
-            self.initialization_vector.as_ref().map(|v| v.as_slice()),
+            self.initialization_vector.as_deref(),
             &file,
         )
         .unwrap()
     }
 
     pub fn decrypt_file(&self, filename: &str) -> Vec<u8> {
-        let file = read_file_to_buffer(&filename);
+        let file = read_file_to_buffer(filename);
         decrypt(
             self.cipher,
             &self.key,
-            self.initialization_vector.as_ref().map(|v| v.as_slice()),
+            self.initialization_vector.as_deref(),
             &file,
         )
         .unwrap()
@@ -219,22 +212,22 @@ impl EncryptAsymmetric {
     }
 
     pub fn private_encrypt_file(&self, filename: &str) -> Vec<u8> {
-        let file = read_file_to_buffer(&filename);
+        let file = read_file_to_buffer(filename);
         self.private_encrypt(&file)
     }
 
     pub fn private_decrypt_file(&self, filename: &str) -> Vec<u8> {
-        let file = read_file_to_buffer(&filename);
+        let file = read_file_to_buffer(filename);
         self.private_decrypt(&file)
     }
 
     pub fn public_encrypt_file(&self, filename: &str) -> Vec<u8> {
-        let file = read_file_to_buffer(&filename);
+        let file = read_file_to_buffer(filename);
         self.public_encrypt(&file)
     }
 
     pub fn public_decrypt_file(&self, filename: &str) -> Vec<u8> {
-        let file = read_file_to_buffer(&filename);
+        let file = read_file_to_buffer(filename);
         self.public_decrypt(&file)
     }
 
@@ -269,7 +262,7 @@ fn fill_buffer(buf: &mut Vec<u8>) {
     }
 }
 
-struct ShaHash;
+pub struct ShaHash;
 
 impl ShaHash {
     pub fn hash(data: &[u8]) -> Vec<u8> {

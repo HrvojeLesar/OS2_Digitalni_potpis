@@ -28,13 +28,15 @@ pub fn read_file_to_buffer(filename: &str) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs::{File, self}, io::Write};
+    use std::{
+        fs::{self, File},
+        io::Write,
+    };
 
     use crate::file_manip::read_file_to_buffer;
 
-    use super::{write_file, read_file_to_string};
+    use super::{read_file_to_string, write_file};
 
-    
     #[test]
     fn write_file_test() {
         write_file("write_file_test", b"content", false);
@@ -63,10 +65,14 @@ mod tests {
     #[test]
     fn read_file_to_buffer_test() {
         let mut file = File::create("read_file_to_buffer_test").unwrap();
-        file.write_all(b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D").unwrap();
+        file.write_all(b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D")
+            .unwrap();
         let res = read_file_to_buffer("read_file_to_buffer_test");
         fs::remove_file("read_file_to_buffer_test").unwrap();
 
-        assert_eq!(res, b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D");
+        assert_eq!(
+            res,
+            b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D"
+        );
     }
 }

@@ -1,4 +1,7 @@
-use iced::{widget::{button, row}, Element};
+use iced::{
+    widget::{button, row},
+    Element,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum NavigationStateMessage {

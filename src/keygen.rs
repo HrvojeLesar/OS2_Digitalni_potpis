@@ -1,15 +1,8 @@
 use rand::{rngs::ThreadRng, Rng};
 
+#[derive(Default)]
 pub struct Keygen {
     rng: ThreadRng,
-}
-
-impl Default for Keygen {
-    fn default() -> Self {
-        Self {
-            rng: ThreadRng::default(),
-        }
-    }
 }
 
 impl Keygen {
