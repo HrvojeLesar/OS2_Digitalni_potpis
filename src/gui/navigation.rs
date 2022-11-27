@@ -1,7 +1,8 @@
 use iced::{
-    widget::{button, row},
     Element,
 };
+
+use super::styled_components::{styled_button, styled_row};
 
 #[derive(Debug, Clone, Copy)]
 pub enum NavigationStateMessage {
@@ -27,13 +28,14 @@ impl NavigationButtons {
     }
 
     pub fn view(&self) -> Element<NavigationStateMessage> {
-        row![
-            button("KeyGen").on_press(NavigationStateMessage::KeyGen),
-            button("EncryptDecrypt").on_press(NavigationStateMessage::EncryptDecrypt),
-            button("Hashing").on_press(NavigationStateMessage::Hashing),
-            button("Sign").on_press(NavigationStateMessage::Sign),
-        ]
-        .spacing(20)
-        .into()
+        styled_row()
+            .push(styled_button("Generiranje kljuceva").on_press(NavigationStateMessage::KeyGen))
+            .push(
+                styled_button("Enkripcija / dekripcija")
+                    .on_press(NavigationStateMessage::EncryptDecrypt),
+            )
+            .push(styled_button("Sazetak").on_press(NavigationStateMessage::Hashing))
+            .push(styled_button("Potpis").on_press(NavigationStateMessage::Sign))
+            .into()
     }
 }

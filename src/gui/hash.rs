@@ -1,10 +1,15 @@
 use iced::{
-    widget::{self, button, row, text},
+    widget::{self, text},
     Element,
 };
 use tinyfiledialogs::open_file_dialog;
 
 use crate::encryption::ShaHash;
+
+use super::{
+    path_to_filename,
+    styled_components::{styled_button, styled_column, styled_row},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum HashMessage {
@@ -45,10 +50,27 @@ impl HashView {
     }
 
     pub fn view(&self) -> Element<HashMessage> {
-        let load_file_button = button("Odabir datoteke").on_press(HashMessage::LoadFile);
-        let hash_button = button("Hash").on_press(HashMessage::Hash);
+        let load_file_button = styled_button("Odabir datoteke").on_press(HashMessage::LoadFile);
+        let hash_button = styled_button("Hash").on_press(HashMessage::Hash);
 
-        let mut column = widget::column![row![load_file_button, hash_button]];
+        let mut row = styled_row();
+
+        if let Some(path) = &self.selected_file {
+            row = row.push(
+                widget::column![
+                    text(format!("Datoteka: {}", path_to_filename(path))),
+                    load_file_button
+                ]
+                .spacing(5),
+            );
+        } else {
+            row = row.push(load_file_button)
+        }
+
+        row = row.push(hash_button);
+        let mut column = styled_column(None).push(row);
+
+        // let mut column = widget::column![row![load_file_button, hash_button]];
 
         if let Some(hash) = self.file_hash.as_ref() {
             column = column.push(text(hash));

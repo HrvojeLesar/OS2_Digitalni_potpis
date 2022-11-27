@@ -1,5 +1,5 @@
 use iced::{
-    widget::{self, button, row, text},
+    widget::{self, text},
     Element,
 };
 use openssl::symm::Cipher;
@@ -11,7 +11,10 @@ use crate::{
     SECRET_KEY_FILENAME,
 };
 
-use super::path_to_filename;
+use super::{
+    path_to_filename,
+    styled_components::{styled_button, styled_column, styled_row},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum EncryptDecryptMessage {
@@ -91,38 +94,57 @@ impl EncryptDecryptView {
     }
 
     pub fn view(&self) -> Element<EncryptDecryptMessage> {
-        let mut load_keys_button = button("Ucitaj kljuceve");
-        load_keys_button = if self.symmetric.is_none() && self.asymmetric.is_none() {
-            load_keys_button.on_press(EncryptDecryptMessage::LoadKeys)
+        let load_keys_button = styled_button("Ucitaj kljuceve");
+        let load_keys_button = if self.symmetric.is_none() && self.asymmetric.is_none() {
+            widget::column![load_keys_button.on_press(EncryptDecryptMessage::LoadKeys)]
         } else {
-            load_keys_button
+            widget::column![text("Kljucevi su ucitani"), load_keys_button].spacing(5)
         };
 
-        let mut col = widget::column![load_keys_button];
+        let load_file_button =
+            styled_button("Odabir datoteke").on_press(EncryptDecryptMessage::LoadFile);
 
-        let load_file_button = button("Odabir datoteke").on_press(EncryptDecryptMessage::LoadFile);
+        let mut row = styled_row().push(load_keys_button);
 
         if let Some(path) = &self.selected_file {
-            col = col.push(row![text(path_to_filename(path)), load_file_button]);
+            row = row.push(
+                widget::column![
+                    text(format!("Datoteka: {}", path_to_filename(path))),
+                    load_file_button
+                ]
+                .spacing(5),
+            );
         } else {
-            col = col.push(load_file_button)
+            row = row.push(load_file_button)
         }
+
+        let mut col = styled_column(None);
+        col = col.push(row);
 
         if let (Some(_asymmetric), Some(_symmetric), Some(_selected_file)) = (
             self.asymmetric.as_ref(),
             self.symmetric.as_ref(),
             self.selected_file.as_ref(),
         ) {
-            col = col.push(row![
-                button("Enkriptiraj datuteku simetricnim algoritmom")
-                    .on_press(EncryptDecryptMessage::EncryptSymmetric),
-                button("Enkriptiraj datuteku asimetricnim algoritmom")
-                    .on_press(EncryptDecryptMessage::EncryptAsymmetric),
-                button("Dekriptiraj datuteku simetricnim algoritmom")
-                    .on_press(EncryptDecryptMessage::DecryptSymmetric),
-                button("Dekriptiraj datuteku asimetricnim algoritmom")
-                    .on_press(EncryptDecryptMessage::DecryptAsymmetric),
-            ]);
+            col = col.push(
+                styled_row()
+                    .push(
+                        styled_button("Enkriptiraj datuteku simetricnim algoritmom")
+                            .on_press(EncryptDecryptMessage::EncryptSymmetric),
+                    )
+                    .push(
+                        styled_button("Enkriptiraj datuteku asimetricnim algoritmom")
+                            .on_press(EncryptDecryptMessage::EncryptAsymmetric),
+                    )
+                    .push(
+                        styled_button("Dekriptiraj datuteku simetricnim algoritmom")
+                            .on_press(EncryptDecryptMessage::DecryptSymmetric),
+                    )
+                    .push(
+                        styled_button("Dekriptiraj datuteku asimetricnim algoritmom")
+                            .on_press(EncryptDecryptMessage::DecryptAsymmetric),
+                    ),
+            );
         }
 
         col.into()

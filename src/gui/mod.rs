@@ -5,6 +5,7 @@ pub mod hash;
 pub mod keygen;
 pub mod navigation;
 pub mod sign;
+pub mod styled_components;
 
 pub(super) fn path_to_filename(path: &str) -> String {
     Path::new(path)

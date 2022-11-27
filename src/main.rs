@@ -3,8 +3,9 @@ use gui::hash::{HashMessage, HashView};
 use gui::keygen::{GenerateKeysView, KeyGenMessage};
 use gui::navigation::{NavigationButtons, NavigationStateMessage};
 use gui::sign::{SignMessage, SignView};
-use iced::widget;
-use iced::{executor, Application, Command, Settings, Theme};
+use gui::styled_components::styled_column;
+use iced::widget::{container, scrollable};
+use iced::{executor, Application, Command, Padding, Settings, Theme};
 
 mod encryption;
 mod file_manip;
@@ -72,10 +73,11 @@ impl Application for DigitalniPotpisApp {
     }
 
     fn view(&self) -> iced::Element<Self::Message> {
-        let mut col = widget::column![self
-            .navigation_buttons
-            .view()
-            .map(Message::NavigationMessage)];
+        let mut col = styled_column(Some("Digitalni potpis")).push(
+            self.navigation_buttons
+                .view()
+                .map(Message::NavigationMessage),
+        );
         col = match self.navigation_buttons.current_state {
             NavigationStateMessage::KeyGen => {
                 col.push(self.keygen_view.view().map(Message::KeyGenMessage))
@@ -92,7 +94,13 @@ impl Application for DigitalniPotpisApp {
                 col.push(self.sign_view.view().map(Message::SignMessage))
             }
         };
-        col.into()
+        let main_container = container(scrollable(
+            container(col).width(iced::Length::Fill).center_x(),
+        ));
+        main_container
+            .height(iced::Length::Fill)
+            .padding(Padding::from([30, 10, 10, 10]))
+            .into()
     }
 }
 
