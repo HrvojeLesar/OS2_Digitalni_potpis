@@ -31,6 +31,7 @@ pub enum Message {
     EncryptDecryptMessage(EncryptDecryptMessage),
     HashMessage(HashMessage),
     SignMessage(SignMessage),
+    ErrorMessage,
 }
 
 impl Application for DigitalniPotpisApp {
@@ -68,6 +69,7 @@ impl Application for DigitalniPotpisApp {
             Message::EncryptDecryptMessage(msg) => self.encrypt_decrypt_view.update(msg),
             Message::HashMessage(msg) => self.hashing_view.update(msg),
             Message::SignMessage(msg) => self.sign_view.update(msg),
+            Message::ErrorMessage => (),
         }
         Command::none()
     }

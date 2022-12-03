@@ -3,27 +3,30 @@ use std::{
     io::{Read, Write},
 };
 
-pub fn write_file(filename: &str, contents: &[u8], append_to: bool) {
+use anyhow::Result;
+
+pub fn write_file(filename: &str, contents: &[u8], append_to: bool) -> Result<()> {
     let mut file = if append_to {
-        File::options().append(true).open(filename).unwrap()
+        File::options().append(true).open(filename)?
     } else {
-        File::create(filename).unwrap()
+        File::create(filename)?
     };
-    file.write_all(contents).unwrap();
+    file.write_all(contents)?;
+    Ok(())
 }
 
-pub fn read_file_to_string(filename: &str) -> String {
-    let mut file = File::open(filename).unwrap();
+pub fn read_file_to_string(filename: &str) -> Result<String> {
+    let mut file = File::open(filename)?;
     let mut contents = String::new();
-    file.read_to_string(&mut contents).unwrap();
-    contents
+    file.read_to_string(&mut contents)?;
+    Ok(contents)
 }
 
-pub fn read_file_to_buffer(filename: &str) -> Vec<u8> {
-    let mut file = File::open(filename).unwrap();
+pub fn read_file_to_buffer(filename: &str) -> Result<Vec<u8>> {
+    let mut file = File::open(filename)?;
     let mut contents = Vec::new();
-    file.read_to_end(&mut contents).unwrap();
-    contents
+    file.read_to_end(&mut contents)?;
+    Ok(contents)
 }
 
 #[cfg(test)]
@@ -47,7 +50,7 @@ mod tests {
     fn write_file_append_test() {
         write_file("write_append_test", b"content", false);
         write_file("write_append_test", b"content", true);
-        let res = read_file_to_string("write_append_test");
+        let res = read_file_to_string("write_append_test").unwrap();
         fs::remove_file("write_append_test").unwrap();
         assert_eq!(res, "contentcontent");
     }
@@ -56,7 +59,7 @@ mod tests {
     fn read_file_to_string_test() {
         let mut file = File::create("read_file_to_string_test").unwrap();
         file.write_all(b"test_string").unwrap();
-        let res = read_file_to_string("read_file_to_string_test");
+        let res = read_file_to_string("read_file_to_string_test").unwrap();
         fs::remove_file("read_file_to_string_test").unwrap();
 
         assert_eq!(res, "test_string");
@@ -67,7 +70,7 @@ mod tests {
         let mut file = File::create("read_file_to_buffer_test").unwrap();
         file.write_all(b"\xAC\x54\x67\xA0\xAF\x9E\x17\x1D\xD4\x14\xD9\xB5\x8E\x20\x1C\x2D")
             .unwrap();
-        let res = read_file_to_buffer("read_file_to_buffer_test");
+        let res = read_file_to_buffer("read_file_to_buffer_test").unwrap();
         fs::remove_file("read_file_to_buffer_test").unwrap();
 
         assert_eq!(

@@ -4,6 +4,8 @@ use iced::{
 };
 use tinyfiledialogs::open_file_dialog;
 
+use anyhow::Result;
+
 use crate::encryption::ShaHash;
 
 use super::{
@@ -42,7 +44,7 @@ impl HashView {
             }
             HashMessage::Hash => {
                 if let Some(path) = &self.selected_file {
-                    let hash = ShaHash::hash_file(path);
+                    let hash = ShaHash::hash_file(path)?;
                     self.file_hash = Some(hex::encode(&hash));
                 }
             }
@@ -58,7 +60,7 @@ impl HashView {
         if let Some(path) = &self.selected_file {
             row = row.push(
                 widget::column![
-                    text(format!("Datoteka: {}", path_to_filename(path))),
+                    text(format!("Datoteka: {}", path_to_filename(path)?)),
                     load_file_button
                 ]
                 .spacing(5),
@@ -76,6 +78,6 @@ impl HashView {
             column = column.push(text(hash));
         }
 
-        column.into()
+        Ok(column.into())
     }
 }
