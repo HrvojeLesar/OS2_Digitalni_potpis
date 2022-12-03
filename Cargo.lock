@@ -1458,6 +1458,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "os2_digitalni_potpis"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "hex",
+ "iced",
+ "openssl",
+ "rand",
+ "tinyfiledialogs",
+]
+
+[[package]]
 name = "owned_ttf_parser"
 version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1647,18 +1659,6 @@ name = "profiling"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74605f360ce573babfe43964cbe520294dcb081afbf8c108fc6e23036b4da2df"
-
-[[package]]
-name = "projekt"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "hex",
- "iced",
- "openssl",
- "rand",
- "tinyfiledialogs",
-]
 
 [[package]]
 name = "quote"

@@ -42,14 +42,14 @@ mod tests {
 
     #[test]
     fn write_file_test() {
-        write_file("write_file_test", b"content", false);
+        write_file("write_file_test", b"content", false).unwrap();
         fs::remove_file("write_file_test").unwrap();
     }
 
     #[test]
     fn write_file_append_test() {
-        write_file("write_append_test", b"content", false);
-        write_file("write_append_test", b"content", true);
+        write_file("write_append_test", b"content", false).unwrap();
+        write_file("write_append_test", b"content", true).unwrap();
         let res = read_file_to_string("write_append_test").unwrap();
         fs::remove_file("write_append_test").unwrap();
         assert_eq!(res, "contentcontent");

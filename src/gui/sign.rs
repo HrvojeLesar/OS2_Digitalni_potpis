@@ -8,7 +8,7 @@ use crate::{encryption::EncryptAsymmetric, file_manip::write_file};
 
 use super::{
     path_to_filename,
-    styled_components::{styled_button, styled_column, styled_row},
+    styled_components::{styled_button, styled_column, styled_error, styled_row, GREEN, RED},
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -27,8 +27,8 @@ pub enum SignMessage {
 pub struct SignView {
     selected_file: Option<String>,
     selected_signature: Option<String>,
-    signed_files_hash: Option<String>,
     file_verified: Option<bool>,
+    error: Option<anyhow::Error>,
 }
 
 impl SignView {
@@ -36,42 +36,67 @@ impl SignView {
         Self {
             selected_file: None,
             selected_signature: None,
-            signed_files_hash: None,
             file_verified: None,
+            error: None,
         }
     }
 
     pub fn reset(&mut self) {
         self.selected_file = None;
         self.selected_signature = None;
-        self.signed_files_hash = None;
         self.file_verified = None;
+        self.error = None;
     }
 
     pub fn update(&mut self, message: SignMessage) {
+        self.error = None;
+        let rsa = match EncryptAsymmetric::from_files(None) {
+            Ok(rsa) => rsa,
+            Err(e) => {
+                self.error = Some(e);
+                return;
+            }
+        };
         match message {
             SignMessage::LoadFile(f) => match f {
                 LoadFileType::File => {
-                    self.selected_file = open_file_dialog("Odabir datoteke", "", None)
+                    self.file_verified = None;
+                    self.selected_file = open_file_dialog("Odabir datoteke", "", None);
                 }
                 LoadFileType::Signature => {
+                    self.file_verified = None;
                     self.selected_signature =
-                        open_file_dialog("Odabir datoteke s potpisom", "", None)
+                        open_file_dialog("Odabir datoteke s potpisom", "", None);
                 }
             },
             SignMessage::Sign => {
                 if let Some(path) = &self.selected_file {
-                    let rsa = EncryptAsymmetric::from_files(None);
-                    let signature = rsa.sign_file(path);
-                    write_file("potpis", &signature, false);
+                    let signature = match rsa.sign_file(path) {
+                        Ok(sig) => sig,
+                        Err(e) => {
+                            self.error = Some(e);
+                            return;
+                        }
+                    };
+                    match write_file("potpis", &signature, false) {
+                        Ok(_) => (),
+                        Err(e) => {
+                            self.error = Some(e);
+                        }
+                    }
                 }
             }
             SignMessage::Verify => {
                 if let (Some(file_path), Some(signature_path)) =
                     (&self.selected_file, &self.selected_signature)
                 {
-                    let rsa = EncryptAsymmetric::from_files(None);
-                    let verify = rsa.verify_file_signature(file_path, signature_path);
+                    let verify = match rsa.verify_file_signature(file_path, signature_path) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            self.error = Some(e);
+                            return;
+                        }
+                    };
                     self.file_verified = Some(verify);
                 }
             }
@@ -117,16 +142,22 @@ impl SignView {
         } else {
             styled_button("Provjera potpisa")
         };
-        let mut column =
-            styled_column(None).push(styled_row().push(load_file_button).push(load_signature));
-        column = column.push(styled_row().push(sign_button).push(verify_button));
+        let mut column = styled_column(None);
 
-        if let Some(hash) = self.signed_files_hash.as_ref() {
-            column = column.push(text(hash));
+        if let Some(e) = &self.error {
+            column = column.push(styled_error(e));
         }
 
+        column = column
+            .push(styled_row().push(load_file_button).push(load_signature))
+            .push(styled_row().push(sign_button).push(verify_button));
+
         if let Some(hash) = self.file_verified.as_ref() {
-            column = column.push(text(hash));
+            if *hash {
+                column = column.push(text("Potpis valjan.").style(GREEN));
+            } else {
+                column = column.push(text("Potpis nije valjan.").style(RED));
+            }
         }
 
         column.into()

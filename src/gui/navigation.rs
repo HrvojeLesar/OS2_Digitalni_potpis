@@ -1,6 +1,4 @@
-use iced::{
-    Element,
-};
+use iced::Element;
 
 use super::styled_components::{styled_button, styled_row};
 

@@ -10,7 +10,7 @@ use crate::{
     PRIVATE_KEY_FILENAME, PUBLIC_KEY_FILENAME,
 };
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 
 pub struct EncryptSymmetric {
     cipher: Cipher,
@@ -89,15 +89,20 @@ impl EncryptAsymmetric {
 
     pub fn new_save_keys() -> Result<Self> {
         let rsa = Rsa::generate(2048)?;
-        write_file(PRIVATE_KEY_FILENAME, &rsa.private_key_to_pem()?, false);
-        write_file(PUBLIC_KEY_FILENAME, &rsa.public_key_to_pem()?, false);
+        write_file(PRIVATE_KEY_FILENAME, &rsa.private_key_to_pem()?, false)?;
+        write_file(PUBLIC_KEY_FILENAME, &rsa.public_key_to_pem()?, false)?;
         Ok(Self {
             rsa: Rsa::generate(2048)?,
         })
     }
 
     pub fn from_files(filename: Option<&str>) -> Result<Self> {
-        let private_key_pem = read_file_to_buffer(filename.unwrap_or(PRIVATE_KEY_FILENAME))?;
+        let private_key_pem = match read_file_to_buffer(filename.unwrap_or(PRIVATE_KEY_FILENAME)) {
+            Ok(pem) => pem,
+            Err(error) => {
+                return Err(anyhow!("Ne postoji par kljuceva | {:?}", error));
+            }
+        };
         Ok(Self {
             rsa: Rsa::private_key_from_pem(&private_key_pem)?,
         })
@@ -199,39 +204,39 @@ impl EncryptAsymmetric {
 
     pub fn private_encrypt_file(&self, filename: &str) -> Result<Vec<u8>> {
         let file = read_file_to_buffer(filename)?;
-        Ok(self.private_encrypt(&file)?)
+        self.private_encrypt(&file)
     }
 
     pub fn private_decrypt_file(&self, filename: &str) -> Result<Vec<u8>> {
         let file = read_file_to_buffer(filename)?;
-        Ok(self.private_decrypt(&file)?)
+        self.private_decrypt(&file)
     }
 
     pub fn public_encrypt_file(&self, filename: &str) -> Result<Vec<u8>> {
         let file = read_file_to_buffer(filename)?;
-        Ok(self.public_encrypt(&file)?)
+        self.public_encrypt(&file)
     }
 
     pub fn public_decrypt_file(&self, filename: &str) -> Result<Vec<u8>> {
         let file = read_file_to_buffer(filename)?;
-        Ok(self.public_decrypt(&file)?)
+        self.public_decrypt(&file)
     }
 
     pub fn sign(&self, data: &[u8]) -> Result<Vec<u8>> {
         let hash = ShaHash::hash(data)?;
-        Ok(self.private_encrypt(&hash)?)
+        self.private_encrypt(&hash)
     }
 
     pub fn sign_file(&self, filename: &str) -> Result<Vec<u8>> {
         let data = read_file_to_buffer(filename)?;
-        Ok(self.sign(&data)?)
+        self.sign(&data)
     }
 
     pub fn verify_file_signature(&self, filename: &str, signature_filename: &str) -> Result<bool> {
         let file = read_file_to_buffer(filename)?;
         let sig = read_file_to_buffer(signature_filename)?;
         let hash = ShaHash::hash(&file)?;
-        Ok(self.verify(&hash, &sig)?)
+        self.verify(&hash, &sig)
     }
 
     pub fn verify(&self, hash: &[u8], signature: &[u8]) -> Result<bool> {
@@ -259,7 +264,7 @@ impl ShaHash {
 
     pub fn hash_file(filename: &str) -> Result<Vec<u8>> {
         let data = read_file_to_buffer(filename)?;
-        Ok(ShaHash::hash(&data)?)
+        ShaHash::hash(&data)
     }
 }
 
