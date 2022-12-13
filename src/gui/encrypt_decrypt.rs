@@ -7,7 +7,7 @@ use openssl::symm::Cipher;
 use tinyfiledialogs::open_file_dialog;
 
 use crate::{
-    encryption::{EncryptAsymmetric, EncryptSymmetric},
+    encryption::{EncryptRsa, EncryptAes},
     file_manip::{read_file_to_buffer, write_file},
     SECRET_KEY_FILENAME,
 };
@@ -29,8 +29,8 @@ pub enum EncryptDecryptMessage {
 
 pub struct EncryptDecryptView {
     selected_file: Option<String>,
-    symmetric: Option<EncryptSymmetric>,
-    asymmetric: Option<EncryptAsymmetric>,
+    symmetric: Option<EncryptAes>,
+    asymmetric: Option<EncryptRsa>,
     error: Option<anyhow::Error>,
 }
 
@@ -64,7 +64,7 @@ impl EncryptDecryptView {
         self.error = None;
         match message {
             EncryptDecryptMessage::LoadKeys => {
-                let asymetric = match EncryptAsymmetric::from_files(None) {
+                let asymetric = match EncryptRsa::from_files(None) {
                     Ok(rsa) => rsa,
                     Err(e) => {
                         self.error = Some(e);
@@ -81,7 +81,7 @@ impl EncryptDecryptView {
                     }
                 };
                 let cipher = Cipher::aes_256_cbc();
-                self.symmetric = Some(EncryptSymmetric::new(cipher, secret_key, None));
+                self.symmetric = Some(EncryptAes::new(cipher, secret_key, None));
             }
             EncryptDecryptMessage::LoadFile => {
                 self.selected_file = open_file_dialog("Odabir datoteke", "", None);

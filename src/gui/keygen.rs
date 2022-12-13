@@ -6,7 +6,7 @@ use iced::{
 };
 
 use crate::{
-    encryption::EncryptAsymmetric, file_manip::write_file, keygen::Keygen, PRIVATE_KEY_FILENAME,
+    encryption::EncryptRsa, file_manip::write_file, keygen::Keygen, PRIVATE_KEY_FILENAME,
     PUBLIC_KEY_FILENAME, SECRET_KEY_FILENAME,
 };
 
@@ -39,7 +39,7 @@ impl GenerateKeysView {
                 }
             }
             KeyGenMessage::GenerateKeyPair => {
-                match EncryptAsymmetric::new_save_keys() {
+                match EncryptRsa::new_save_keys() {
                     Ok(_) => {}
                     Err(e) => {
                         self.error = Some(e);

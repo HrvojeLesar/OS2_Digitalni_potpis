@@ -1,0 +1,20 @@
+Za kompajliranje i pokretanje projekta potrebno je imati instaliran 
+programski jezik rust i njegovo okruženje.
+Moguće skinuti i instalirati s: https://www.rust-lang.org/tools/install
+
+Projekt se pokreće pokretanjem datoteke `os2_digitalni_potpis.exe`.
+Sve datoteke koje kreira program se zapisuju u direktorij iz kojeg
+je pokrenut program.
+
+-- Kompajliranje i pokretanje izvornog koda --
+Projekt se kompajlira pokretanjem `cargo build` u 
+korijenskom direktoriju projekta (Sadrži Cargo.toml i Cargo.lock).
+
+`cargo build` kreira debug verziju projekta u `target/debug` direktoriju.
+`cargo build --release` kreira release verziju projekta u `target/release` direktoriju
+(Release verzija je kompajlirana s više optimizacija, bez debug simbola, funkcionalno
+su release i debug verzije jednake).
+
+Isto tako pokretanjem
+`cargo run` se kompajlira i direktno pokrece debug verzija projekta,
+`cargo run --release` kompajlira i pokrece release verziju projekta.

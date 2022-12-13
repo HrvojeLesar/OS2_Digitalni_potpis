@@ -4,7 +4,7 @@ use iced::{
 };
 use tinyfiledialogs::open_file_dialog;
 
-use crate::{encryption::EncryptAsymmetric, file_manip::write_file};
+use crate::{encryption::EncryptRsa, file_manip::write_file};
 
 use super::{
     path_to_filename,
@@ -50,7 +50,7 @@ impl SignView {
 
     pub fn update(&mut self, message: SignMessage) {
         self.error = None;
-        let rsa = match EncryptAsymmetric::from_files(None) {
+        let rsa = match EncryptRsa::from_files(None) {
             Ok(rsa) => rsa,
             Err(e) => {
                 self.error = Some(e);
@@ -92,8 +92,8 @@ impl SignView {
                 {
                     let verify = match rsa.verify_file_signature(file_path, signature_path) {
                         Ok(v) => v,
-                        Err(e) => {
-                            self.error = Some(e);
+                        Err(_) => {
+                            self.file_verified = Some(false);
                             return;
                         }
                     };

@@ -12,23 +12,15 @@ use crate::{
 
 use anyhow::{anyhow, Result};
 
-pub struct EncryptSymmetric {
+const RSA_KEY_LENGTH: u32 = 2048;
+
+pub struct EncryptAes {
     cipher: Cipher,
     key: Vec<u8>,
     initialization_vector: Option<Vec<u8>>,
 }
 
-impl Default for EncryptSymmetric {
-    fn default() -> Self {
-        Self {
-            cipher: Cipher::aes_128_cbc(),
-            key: b"secure_128bitkey".to_vec(),
-            initialization_vector: None,
-        }
-    }
-}
-
-impl EncryptSymmetric {
+impl EncryptAes {
     pub fn new(cipher: Cipher, key: Vec<u8>, initialization_vector: Option<Vec<u8>>) -> Self {
         Self {
             cipher,
@@ -57,43 +49,25 @@ impl EncryptSymmetric {
 
     pub fn encrypt_file(&self, filename: &str) -> Result<Vec<u8>> {
         let file = read_file_to_buffer(filename)?;
-        Ok(encrypt(
-            self.cipher,
-            &self.key,
-            self.initialization_vector.as_deref(),
-            &file,
-        )?)
+        self.encrypt(&file)
     }
 
     pub fn decrypt_file(&self, filename: &str) -> Result<Vec<u8>> {
         let file = read_file_to_buffer(filename)?;
-        Ok(decrypt(
-            self.cipher,
-            &self.key,
-            self.initialization_vector.as_deref(),
-            &file,
-        )?)
+        self.decrypt(&file)
     }
 }
 
-pub struct EncryptAsymmetric {
+pub struct EncryptRsa {
     rsa: Rsa<Private>,
 }
 
-impl EncryptAsymmetric {
-    pub fn new() -> Result<Self> {
-        Ok(Self {
-            rsa: Rsa::generate(2048)?,
-        })
-    }
-
+impl EncryptRsa {
     pub fn new_save_keys() -> Result<Self> {
-        let rsa = Rsa::generate(2048)?;
+        let rsa = Rsa::generate(RSA_KEY_LENGTH)?;
         write_file(PRIVATE_KEY_FILENAME, &rsa.private_key_to_pem()?, false)?;
         write_file(PUBLIC_KEY_FILENAME, &rsa.public_key_to_pem()?, false)?;
-        Ok(Self {
-            rsa: Rsa::generate(2048)?,
-        })
+        Ok(Self { rsa })
     }
 
     pub fn from_files(filename: Option<&str>) -> Result<Self> {
@@ -265,25 +239,5 @@ impl ShaHash {
     pub fn hash_file(filename: &str) -> Result<Vec<u8>> {
         let data = read_file_to_buffer(filename)?;
         ShaHash::hash(&data)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-
-    use super::EncryptSymmetric;
-
-    #[test]
-    fn test_encrypt_symmetric() {
-        let aes = EncryptSymmetric::default();
-        let data = aes.encrypt(b"test").unwrap();
-        assert_eq!(data.as_slice(), b"test");
-    }
-
-    #[test]
-    fn test_decrypt_symmetric() {
-        let aes = EncryptSymmetric::default();
-        let data = aes.decrypt(b"test").unwrap();
-        assert_eq!(data, b"test");
     }
 }
