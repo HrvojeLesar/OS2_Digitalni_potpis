@@ -1458,7 +1458,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "os2_digitalni_potpis"
+name = "os2_projekt"
 version = "0.1.0"
 dependencies = [
  "anyhow",

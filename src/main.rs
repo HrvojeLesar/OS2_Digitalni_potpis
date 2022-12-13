@@ -16,7 +16,7 @@ const PRIVATE_KEY_FILENAME: &str = "privatni_kljuc.txt";
 const PUBLIC_KEY_FILENAME: &str = "javni_kljuc.txt";
 const SECRET_KEY_FILENAME: &str = "tajni_kljuc.txt";
 
-struct DigitalniPotpisApp {
+struct Os2Projekt {
     navigation_buttons: NavigationButtons,
     keygen_view: GenerateKeysView,
     encrypt_decrypt_view: EncryptDecryptView,
@@ -34,7 +34,7 @@ pub enum Message {
     ErrorMessage,
 }
 
-impl Application for DigitalniPotpisApp {
+impl Application for Os2Projekt {
     type Message = Message;
     type Executor = executor::Default;
     type Theme = Theme;
@@ -54,7 +54,7 @@ impl Application for DigitalniPotpisApp {
     }
 
     fn title(&self) -> String {
-        String::from("Digitalni Potpis")
+        String::from("Operacijski sustavi 2 - Projekt - Enkripcija, dekripcija, digitalni potpis")
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Message> {
@@ -75,7 +75,7 @@ impl Application for DigitalniPotpisApp {
     }
 
     fn view(&self) -> iced::Element<Self::Message> {
-        let mut col = styled_column(Some("Digitalni potpis")).push(
+        let mut col = styled_column(None).push(
             self.navigation_buttons
                 .view()
                 .map(Message::NavigationMessage),
@@ -107,5 +107,5 @@ impl Application for DigitalniPotpisApp {
 }
 
 fn main() -> iced::Result {
-    DigitalniPotpisApp::run(Settings::default())
+    Os2Projekt::run(Settings::default())
 }

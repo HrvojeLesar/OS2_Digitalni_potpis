@@ -1,1 +1,1 @@
-rm aes_* rsa_* potpis *.txt
+rm aes_* rsa_* potpis
